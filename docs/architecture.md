@@ -1,34 +1,34 @@
 # Architecture
 
 ```
-                 +----------------+   +----------------+
-                 | CoinGeckoClient|   |AlphaVantageClient|
-                 +-------+--------+   +--------+---------+
+                 +----------------+   +--------------------+
+                 | CoinGeckoClient|   | AlphaVantageClient |
+                 +-------+--------+   +--------+-----------+
                          |  (Exchange interface)|
                          v                      v
-                     +-------------------------------+
-                     |         PriceFetcher          |
-                     |  (ThreadPoolExecutor, concurrent
-                     |   fetch across all exchanges)  |
-                     +---------------+----------------+
+                     +----------------------------------+
+                     |         PriceFetcher             |
+                     |  (ThreadPoolExecutor, concurrent |
+                     |   fetch across all exchanges)    |
+                     +---------------+------------------+
                                      |
                           PricePoint (pydantic model)
                                      |
                  +-------------------+-------------------+
                  |                                       |
                  v                                       v
-       +------------------+                    +-------------------+
+       +-------------------+                    +-------------------+
        |   PriceStore      |                    |   rules.evaluate  |
-       | (MongoDB Atlas)|                   | (AlertRule check) |
-       +------------------+                    +----------+---------+
+       | (MongoDB Atlas)   |                    | (AlertRule check) |
+       +-------------------+                    +----------+--------+
                  ^                                         |
                  |                                    AlertEvent
                  |                                         v
                  |                              +-----------------+
                  +------------------------------|   Notifier      |
-                        (log alert too)          | (console/email/ |
-                                                  |  telegram)      |
-                                                  +-----------------+
+                        (log alert too)         | (console/email/ |
+                                                |  telegram)      |
+                                                +-----------------+
 
 Scheduler (APScheduler) drives PriceFetcher -> rules.evaluate -> Notifier
 on a fixed interval. Optional Streamlit dashboard reads from PriceStore
